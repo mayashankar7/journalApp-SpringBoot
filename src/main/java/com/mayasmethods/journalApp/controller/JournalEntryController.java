@@ -1,36 +1,47 @@
 package com.mayasmethods.journalApp.controller;
 
 import com.mayasmethods.journalApp.entity.JournalEntry;
+import com.mayasmethods.journalApp.service.JournalEntryService;
+import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/journal")
 public class JournalEntryController {
-    private Map<Long, JournalEntry> journalEntries = new HashMap<>();
+    @Autowired
+    private JournalEntryService journalEntryService;
+
     @GetMapping
     public List<JournalEntry> getAll(){
-        return new ArrayList<>(journalEntries.values());
+        return journalEntryService.getAll();
     }
     @PostMapping
     public boolean createEntry(@RequestBody JournalEntry myEntry){
-        journalEntries.put(myEntry.getId(), myEntry);
+        myEntry.setDate(LocalDateTime.now());
+        journalEntryService.saveEntry(myEntry);
         return true;
     }
     @GetMapping("id/{myId}")
-    public JournalEntry getEntryById(@PathVariable long myId) {
-        return journalEntries.get(myId);
+    public JournalEntry getEntryById(@PathVariable ObjectId myId) {
+        return journalEntryService.getEntryById(myId).orElse(null);
     }
     @DeleteMapping("id/{myId}")
-    public JournalEntry deleteEntryById(@PathVariable long myId) {
-        return journalEntries.remove(myId);
+    public boolean deleteEntryById(@PathVariable ObjectId myId) {
+        journalEntryService.deleteEntryById(myId);
+       return true;
     }
     @PutMapping("id/{Id}")
-    public JournalEntry updateEntryById(@PathVariable long Id, @RequestBody JournalEntry myEntry) {
-        return journalEntries.put(Id, myEntry);
+    public JournalEntry updateEntryById(@PathVariable ObjectId Id, @RequestBody JournalEntry newEntry) {
+        JournalEntry old = journalEntryService.getEntryById(Id).orElse(null);
+        if(old != null) {
+            old.setTitle(newEntry.getTitle()!=null && !newEntry.getTitle().isEmpty() ? newEntry.getTitle() : old.getTitle());
+            old.setContent(newEntry.getContent()!=null && !newEntry.getContent().isEmpty() ? newEntry.getContent() : old.getContent());
+        }
+        journalEntryService.saveEntry(old);
+        return old;
     }
 }
