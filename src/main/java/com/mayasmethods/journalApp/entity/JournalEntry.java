@@ -11,7 +11,6 @@ public class JournalEntry {
     private ObjectId id;
     private String title;
     private String content;
-
     private LocalDateTime date;
 
     public LocalDateTime getDate() {
@@ -22,12 +21,9 @@ public class JournalEntry {
         this.date = date;
     }
 
-
-
     public ObjectId getId() {
         return id;
     }
-
     public void setId(ObjectId id) {
         this.id = id;
     }
